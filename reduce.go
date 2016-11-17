@@ -1,6 +1,5 @@
 package NewHope_golang
 
-
 const (
 	QINV = 12287
 	RLOG = 18

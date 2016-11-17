@@ -10,18 +10,18 @@ import (
 )
 
 const (
-	KeySize = 32
-	NonceSize = 8
-	INonceSize = 12
-	XNonceSize = 24
-	HNonceSize = 16
-	BlockSize = 64
+	KeySize      = 32
+	NonceSize    = 8
+	INonceSize   = 12
+	XNonceSize   = 24
+	HNonceSize   = 16
+	BlockSize    = 64
 	stateSize    = 16
 	chachaRounds = 20
-	sigma0 = uint32(0x61707865)
-	sigma1 = uint32(0x3320646e)
-	sigma2 = uint32(0x79622d32)
-	sigma3 = uint32(0x6b206574)
+	sigma0       = uint32(0x61707865)
+	sigma1       = uint32(0x3320646e)
+	sigma2       = uint32(0x79622d32)
+	sigma3       = uint32(0x6b206574)
 )
 
 func blocksRef(x *[stateSize]uint32, in []byte, out []byte, nrBlocks int, isIetf bool) {
@@ -32,9 +32,6 @@ func blocksRef(x *[stateSize]uint32, in []byte, out []byte, nrBlocks int, isIetf
 			panic("chacha20: Exceeded keystream per nonce limit")
 		}
 	}
-
-	// This routine ignores x[0]...x[4] in favor the const values since it's
-	// ever so slightly faster.
 
 	for n := 0; n < nrBlocks; n++ {
 		x0, x1, x2, x3 := sigma0, sigma1, sigma2, sigma3
@@ -264,7 +261,6 @@ func hChaChaRef(x *[stateSize]uint32, out *[32]byte) {
 	x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15 := x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8], x[9], x[10], x[11]
 
 	for i := chachaRounds; i > 0; i -= 2 {
-		// quarterround(x, 0, 4, 8, 12)
 		x0 += x4
 		x12 ^= x0
 		x12 = (x12 << 16) | (x12 >> 16)
@@ -278,7 +274,6 @@ func hChaChaRef(x *[stateSize]uint32, out *[32]byte) {
 		x4 ^= x8
 		x4 = (x4 << 7) | (x4 >> 25)
 
-		// quarterround(x, 1, 5, 9, 13)
 		x1 += x5
 		x13 ^= x1
 		x13 = (x13 << 16) | (x13 >> 16)
@@ -292,7 +287,6 @@ func hChaChaRef(x *[stateSize]uint32, out *[32]byte) {
 		x5 ^= x9
 		x5 = (x5 << 7) | (x5 >> 25)
 
-		// quarterround(x, 2, 6, 10, 14)
 		x2 += x6
 		x14 ^= x2
 		x14 = (x14 << 16) | (x14 >> 16)
@@ -306,7 +300,6 @@ func hChaChaRef(x *[stateSize]uint32, out *[32]byte) {
 		x6 ^= x10
 		x6 = (x6 << 7) | (x6 >> 25)
 
-		// quarterround(x, 3, 7, 11, 15)
 		x3 += x7
 		x15 ^= x3
 		x15 = (x15 << 16) | (x15 >> 16)
@@ -320,7 +313,6 @@ func hChaChaRef(x *[stateSize]uint32, out *[32]byte) {
 		x7 ^= x11
 		x7 = (x7 << 7) | (x7 >> 25)
 
-		// quarterround(x, 0, 5, 10, 15)
 		x0 += x5
 		x15 ^= x0
 		x15 = (x15 << 16) | (x15 >> 16)
@@ -334,7 +326,6 @@ func hChaChaRef(x *[stateSize]uint32, out *[32]byte) {
 		x5 ^= x10
 		x5 = (x5 << 7) | (x5 >> 25)
 
-		// quarterround(x, 1, 6, 11, 12)
 		x1 += x6
 		x12 ^= x1
 		x12 = (x12 << 16) | (x12 >> 16)
@@ -348,7 +339,6 @@ func hChaChaRef(x *[stateSize]uint32, out *[32]byte) {
 		x6 ^= x11
 		x6 = (x6 << 7) | (x6 >> 25)
 
-		// quarterround(x, 2, 7, 8, 13)
 		x2 += x7
 		x13 ^= x2
 		x13 = (x13 << 16) | (x13 >> 16)
@@ -362,7 +352,6 @@ func hChaChaRef(x *[stateSize]uint32, out *[32]byte) {
 		x7 ^= x8
 		x7 = (x7 << 7) | (x7 >> 25)
 
-		// quarterround(x, 3, 4, 9, 14)
 		x3 += x4
 		x14 ^= x3
 		x14 = (x14 << 16) | (x14 >> 16)
@@ -402,15 +391,9 @@ func hChaChaRef(x *[stateSize]uint32, out *[32]byte) {
 	return
 }
 
-
 var (
-	// ErrInvalidKey is the error returned when the key is invalid.
-	ErrInvalidKey = errors.New("key length must be KeySize bytes")
-
-	// ErrInvalidNonce is the error returned when the nonce is invalid.
-	ErrInvalidNonce = errors.New("nonce length must be NonceSize/INonceSize/XNonceSize bytes")
-
-	// ErrInvalidCounter is the error returned when the counter is invalid.
+	ErrInvalidKey     = errors.New("key length must be KeySize bytes")
+	ErrInvalidNonce   = errors.New("nonce length must be NonceSize/INonceSize/XNonceSize bytes")
 	ErrInvalidCounter = errors.New("block counter is invalid (out of range)")
 
 	useUnsafe    = false
@@ -418,8 +401,6 @@ var (
 	blocksFn     = blocksRef
 )
 
-// A Cipher is an instance of ChaCha20/XChaCha20 using a particular key and
-// nonce.
 type Cipher struct {
 	state [stateSize]uint32
 
@@ -428,8 +409,6 @@ type Cipher struct {
 	ietf bool
 }
 
-// Reset zeros the key data so that it will no longer appear in the process's
-// memory.
 func (c *Cipher) Reset() {
 	for i := range c.state {
 		c.state[i] = 0
@@ -439,8 +418,6 @@ func (c *Cipher) Reset() {
 	}
 }
 
-// XORKeyStream sets dst to the result of XORing src with the key stream.  Dst
-// and src may be the same slice but otherwise should not overlap.
 func (c *Cipher) XORKeyStream(dst, src []byte) {
 	if len(dst) < len(src) {
 		src = src[:len(dst)]
@@ -485,10 +462,8 @@ func (c *Cipher) XORKeyStream(dst, src []byte) {
 	}
 }
 
-// KeyStream sets dst to the raw keystream.
 func (c *Cipher) KeyStream(dst []byte) {
 	for remaining := len(dst); remaining > 0; {
-		// Process multiple blocks at once.
 		if c.off == BlockSize {
 			nrBlocks := remaining / BlockSize
 			directBytes := nrBlocks * BlockSize
@@ -501,13 +476,10 @@ func (c *Cipher) KeyStream(dst []byte) {
 				dst = dst[directBytes:]
 			}
 
-			// If there's a partial block, generate 1 block of keystream into
-			// the internal buffer.
 			blocksFn(&c.state, nil, c.buf[:], 1, c.ietf)
 			c.off = 0
 		}
 
-		// Process partial blocks from the buffered keystream.
 		toCopy := BlockSize - c.off
 		if remaining < toCopy {
 			toCopy = remaining
@@ -521,8 +493,6 @@ func (c *Cipher) KeyStream(dst []byte) {
 	}
 }
 
-// ReKey reinitializes the ChaCha20/XChaCha20 instance with the provided key
-// and nonce.
 func (c *Cipher) ReKey(key, nonce []byte) error {
 	if len(key) != KeySize {
 		return ErrInvalidKey
@@ -577,7 +547,6 @@ func (c *Cipher) ReKey(key, nonce []byte) error {
 
 }
 
-// Seek sets the block counter to a given offset.
 func (c *Cipher) Seek(blockCounter uint64) error {
 	if c.ietf {
 		if blockCounter > math.MaxUint32 {
@@ -592,8 +561,7 @@ func (c *Cipher) Seek(blockCounter uint64) error {
 	return nil
 }
 
-// NewCipher returns a new ChaCha20/XChaCha20 instance.
-func NewCipher(key, nonce []byte) (*Cipher, error) {
+func ChaCha20NewCipher(key, nonce []byte) (*Cipher, error) {
 	c := new(Cipher)
 	if err := c.ReKey(key, nonce); err != nil {
 		return nil, err
@@ -601,7 +569,6 @@ func NewCipher(key, nonce []byte) (*Cipher, error) {
 	return c, nil
 }
 
-// HChaCha is the HChaCha20 hash function used to make XChaCha.
 func HChaCha(key []byte, nonce *[HNonceSize]byte, out *[32]byte) {
 	var x [stateSize]uint32 // Last 4 slots unused, sigma hardcoded.
 	x[0] = binary.LittleEndian.Uint32(key[0:4])
@@ -622,12 +589,8 @@ func HChaCha(key []byte, nonce *[HNonceSize]byte, out *[32]byte) {
 func init() {
 	switch runtime.GOARCH {
 	case "386", "amd64":
-		// Abuse unsafe to skip calling binary.LittleEndian.PutUint32
-		// in the critical path.  This is a big boost on systems that are
-		// little endian and not overly picky about alignment.
 		useUnsafe = true
 	}
 }
 
 var _ cipher.Stream = (*Cipher)(nil)
-

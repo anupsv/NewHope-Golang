@@ -1,6 +1,5 @@
 package NewHope_golang
 
-
 var bitrevTable = [paramN]uint16{
 	0, 512, 256, 768, 128, 640, 384, 896, 64, 576, 320, 832, 192, 704, 448, 960,
 	32, 544, 288, 800, 160, 672, 416, 928, 96, 608, 352, 864, 224, 736, 480,
@@ -76,7 +75,7 @@ var bitrevTable = [paramN]uint16{
 	767, 511, 1023,
 }
 
-func (p *poly) bitrev() {
+func (p *poly) bitrevVector() {
 	for i, v := range p.coeffs {
 		r := bitrevTable[i]
 		if uint16(i) < r {
@@ -100,12 +99,12 @@ func ntt(a *[paramN]uint16, omega *[paramN / 2]uint16) {
 		distance = (1 << i)
 		for start := uint(0); start < distance; start++ {
 			jTwiddle := 0
-			for j := start; j < paramN - 1; j += 2 * distance {
+			for j := start; j < paramN-1; j += 2 * distance {
 				w := uint32(omega[jTwiddle])
 				jTwiddle++
 				tmp := a[j]
-				a[j] = tmp + a[j + distance]
-				a[j + distance] = montgomeryReduce(w * (uint32(tmp) + 3 * PARAMQ - uint32(a[j + distance])))
+				a[j] = tmp + a[j+distance]
+				a[j+distance] = montgomeryReduce(w * (uint32(tmp) + 3*PARAMQ - uint32(a[j+distance])))
 			}
 		}
 
@@ -113,14 +112,13 @@ func ntt(a *[paramN]uint16, omega *[paramN / 2]uint16) {
 		distance <<= 1
 		for start := uint(0); start < distance; start++ {
 			jTwiddle := 0
-			for j := start; j < paramN - 1; j += 2 * distance {
+			for j := start; j < paramN-1; j += 2 * distance {
 				w := uint32(omega[jTwiddle])
 				jTwiddle++
 				tmp := a[j]
-				a[j] = barrettReduce(tmp + a[j + distance])
-				a[j + distance] = montgomeryReduce(w * (uint32(tmp) + 3 * PARAMQ - uint32(a[j + distance])))
+				a[j] = barrettReduce(tmp + a[j+distance])
+				a[j+distance] = montgomeryReduce(w * (uint32(tmp) + 3*PARAMQ - uint32(a[j+distance])))
 			}
 		}
 	}
 }
-

@@ -1,14 +1,12 @@
 package NewHope_golang
 
-
 import (
 	"encoding/binary"
 	"golang.org/x/crypto/sha3"
 )
 
-
 const (
-	PolyBytes = 1792
+	polyBytes    = 1792
 	shake128Rate = 168
 )
 
@@ -16,16 +14,14 @@ type poly struct {
 	coeffs [paramN]uint16
 }
 
-
 func (p *poly) destroy() {
 	for i := range p.coeffs {
 		p.coeffs[i] = 0
 	}
 }
 
-
-func (p *poly) poly_frombytes(a []byte) {
-	for i := 0; i < paramN /4; i++ {
+func (p *poly) polyFromBytes(a []byte) {
+	for i := 0; i < paramN/4; i++ {
 		p.coeffs[4*i+0] = uint16(a[7*i+0]) | ((uint16(a[7*i+1]) & 0x3f) << 8)
 		p.coeffs[4*i+1] = (uint16(a[7*i+1]) >> 6) | (uint16(a[7*i+2]) << 2) | ((uint16(a[7*i+3]) & 0x0f) << 10)
 
@@ -34,10 +30,8 @@ func (p *poly) poly_frombytes(a []byte) {
 	}
 }
 
-
-
-func (p *poly) poly_tobytes(r []byte) {
-	for i := 0; i < paramN /4; i++ {
+func (p *poly) polyToBytes(r []byte) {
+	for i := 0; i < paramN/4; i++ {
 		// Make sure that coefficients have only 14 bits.
 		t0 := barrettReduce(p.coeffs[4*i+0])
 		t1 := barrettReduce(p.coeffs[4*i+1])
@@ -75,7 +69,7 @@ func (p *poly) poly_tobytes(r []byte) {
 	}
 }
 
-func (p *poly) poly_uniform(seed *[SeedBytes]byte, torSampling bool) {
+func (p *poly) polyUniform(seed *[SeedBytes]byte, torSampling bool) {
 	if !torSampling {
 		// Reference version, vartime.
 		nBlocks := 14
@@ -89,7 +83,7 @@ func (p *poly) poly_uniform(seed *[SeedBytes]byte, torSampling bool) {
 		for ctr, pos := 0, 0; ctr < paramN; {
 			val := binary.LittleEndian.Uint16(buf[pos:])
 
-			if val < 5* PARAMQ {
+			if val < 5*PARAMQ {
 				p.coeffs[ctr] = val
 				ctr++
 			}
@@ -103,10 +97,60 @@ func (p *poly) poly_uniform(seed *[SeedBytes]byte, torSampling bool) {
 	}
 }
 
+func (p *poly) polyNtt() {
+	p.mulCoefficients(&psisBitrevMontgomery)
+	ntt(&p.coeffs, &omegasMontgomery)
+}
 
+func (p *poly) polyInvNtt() {
+	p.bitrevVector()
+	ntt(&p.coeffs, &omegasInvMontgomery)
+	p.mulCoefficients(&psisInvMontgomery)
+}
 
 func init() {
 	if paramK != 16 {
 		panic("Err")
 	}
+}
+
+func (p *poly) pointWise(a, b *poly) {
+	for i := range p.coeffs {
+		t := montgomeryReduce(3186 * uint32(b.coeffs[i]))               // t is now in Montgomery domain
+		p.coeffs[i] = montgomeryReduce(uint32(a.coeffs[i]) * uint32(t)) // p.coeffs[i] is back in normal domain
+	}
+}
+
+func (p *poly) add(a, b *poly) {
+	for i := range p.coeffs {
+		p.coeffs[i] = barrettReduce(a.coeffs[i] + b.coeffs[i])
+	}
+}
+
+func (p *poly) getNoise(seed *[SeedBytes]byte, nonce byte) {
+	// The `ref` code uses a uint32 vector instead of a byte vector,
+	// but converting between the two in Go is cumbersome.
+	var buf [4 * paramN]byte
+	var n [8]byte
+
+	n[0] = nonce
+	stream, err := ChaCha20NewCipher(seed[:], n[:])
+	if err != nil {
+		panic(err)
+	}
+	stream.KeyStream(buf[:])
+	stream.Reset()
+
+	for i := 0; i < paramN; i++ {
+		t := binary.LittleEndian.Uint32(buf[4*i:])
+		d := uint32(0)
+		for j := uint(0); j < 8; j++ {
+			d += (t >> j) & 0x01010101
+		}
+		a := ((d >> 8) & 0xff) + (d & 0xff)
+		b := (d >> 24) + ((d >> 16) & 0xff)
+		p.coeffs[i] = uint16(a) + PARAMQ - uint16(b)
+	}
+
+	memwipe(buf[:])
 }
