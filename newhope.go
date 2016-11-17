@@ -2,7 +2,6 @@ package NewHope_golang
 
 import (
 	"io"
-
 	"golang.org/x/crypto/sha3"
 )
 
@@ -103,9 +102,6 @@ type PublicKeyBob struct {
 	Send [SendBSize]byte
 }
 
-// KeyExchangeBob is the Responder side of the Ring-LWE key exchange.  The
-// shared secret and "public key" (key + reconciliation data) are generated
-// using the given reader, which must return random data.
 func KeyExchangeBob(rand io.Reader, alicePk *PublicKeyAlice) (*PublicKeyBob, []byte, error) {
 	var pka, a, sp, ep, u, v, epp, r poly
 	var seed, noiseSeed [SeedBytes]byte
@@ -153,9 +149,6 @@ func KeyExchangeBob(rand io.Reader, alicePk *PublicKeyAlice) (*PublicKeyBob, []b
 	return pubKey, mu[:], nil
 }
 
-// KeyExchangeAlice is the Initiaitor side of the Ring-LWE key exchange.  The
-// provided private key is obliterated prior to returning, to promote
-// implementing Perfect Forward Secrecy.
 func KeyExchangeAlice(bobPk *PublicKeyBob, aliceSk *PrivateKeyAlice) ([]byte, error) {
 	var u, r, vp poly
 
