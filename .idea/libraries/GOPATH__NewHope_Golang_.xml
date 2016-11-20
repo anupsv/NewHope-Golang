@@ -24,6 +24,7 @@
       <root url="file:///usr/local/go/src/expvar" />
       <root url="file:///usr/local/go/src/golang.org" />
       <root url="file:///usr/local/go/src/flag" />
+      <root url="file:///usr/local/go/src/github.com" />
       <root url="file:///usr/local/go/src/log" />
       <root url="file:///usr/local/go/src/unsafe" />
       <root url="file:///usr/local/go/src/database" />
@@ -71,6 +72,7 @@
       <root url="file:///usr/local/go/src/expvar" />
       <root url="file:///usr/local/go/src/golang.org" />
       <root url="file:///usr/local/go/src/flag" />
+      <root url="file:///usr/local/go/src/github.com" />
       <root url="file:///usr/local/go/src/log" />
       <root url="file:///usr/local/go/src/unsafe" />
       <root url="file:///usr/local/go/src/database" />
