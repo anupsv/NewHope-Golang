@@ -1,4 +1,4 @@
-package NewHope_golang
+package NewHope
 
 const (
 	QINV = 12287

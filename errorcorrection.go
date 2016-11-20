@@ -1,4 +1,4 @@
-package NewHope_golang
+package NewHope
 
 func abs(v int32) int32 {
 	mask := v >> 31

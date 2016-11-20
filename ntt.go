@@ -1,4 +1,4 @@
-package NewHope_golang
+package NewHope
 
 var bitrevTable = [paramN]uint16{
 	0, 512, 256, 768, 128, 640, 384, 896, 64, 576, 320, 832, 192, 704, 448, 960,

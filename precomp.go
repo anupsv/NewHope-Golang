@@ -1,4 +1,4 @@
-package NewHope_golang
+package NewHope
 
 var omegasMontgomery = [paramN / 2]uint16{
 	4075, 6974, 7373, 7965, 3262, 5079, 522, 2169, 6364, 1018, 1041, 8775, 2344,
